@@ -10,8 +10,8 @@ move_board = deepcopy(set_board)
 
 #screen initialise - things to do with the output
 pygame.init()
-fps = 50
-cell = 50 #how big one cell is in pixels
+fps = 60
+cell = 25 #how big one cell is in pixels
 game_res = w * cell, h * cell #screen size in pixels
 game_sc = pygame.display.set_mode(game_res)#initializing the screen
 clock = pygame.time.Clock()
@@ -40,8 +40,9 @@ score = 0
 rotate = False
 landing_time = 0
 landed = False
+drop = False
 
-def check_collision(fig_coor):
+def check_collision(fig_coor): ### Return True if collide, False if no collision
     global w, set_board
     for i in range(4):
         if fig_coor[i][0] >= w or fig_coor[i][0] < 0 or fig_coor[i][1] >= h:
@@ -65,14 +66,23 @@ while True:
         rotate = False
         center = fig_coor[0]
         for i in range(4):
-            x = fig_coor[i][1] - center[1]
-            y = fig_coor[i][0] - center[0]
-            fig_coor[i][0] = center[0] - x
-            fig_coor[i][1] = center[1] + y
+            y = fig_coor[i][1] - center[1]
+            x = fig_coor[i][0] - center[0]
+            fig_coor[i][0] = center[0] - y
+            fig_coor[i][1] = center[1] + x
             if check_collision(fig_coor):
                 fig_coor = deepcopy(old_fig)
                 break
         continue
+
+    if drop:
+        drop = False
+        while check_collision(fig_coor) == False:
+            for i in range(4):
+                fig_coor[i][1] += 1
+        for i in range(4):
+                fig_coor[i][1] -= 1
+
 
     #natural fall mechanism
     drop_counter += level
@@ -93,6 +103,8 @@ while True:
                 dy += 1
             elif event.key == pygame.K_UP:
                 rotate = True
+            elif event.key == pygame.K_SPACE:
+                drop = True
 
     # implementing change
     #changing coordinates of the figure in play
@@ -131,7 +143,9 @@ while True:
                 filled = False
                 break
         if filled:
-            for y in range(i,-1,-1):
+            for x in range(w):
+                set_board[i][x] = 0
+            for y in range(i, 0,-1):
                 set_board[y] = set_board[y-1]
             break
     
